@@ -37,6 +37,8 @@ if cat .ddev/config.yaml | grep "^hooks:" > /dev/null; then
   echo "=> It looks like you already have active hooks in your .ddev/config.yaml."
   echo "   To finish setup, you'll need to add/merge the following config into"
   echo "   what you already have configured:"
+  echo
+  echo
   cat << EOF
 no_project_mount: true
 hooks:
@@ -47,6 +49,8 @@ hooks:
     # Terminate the mutagen sync process for this project.
     - exec-host: "ddev mutagen stop
 EOF
+  echo
+  echo
 # Otherwise, we can safely just tack this onto the end of the .ddev/config.yaml and
 # we're good to go.
 else
