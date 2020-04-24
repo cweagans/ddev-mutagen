@@ -1,7 +1,10 @@
 # ddev-mutagen
 
-Uses mutagen to sync files into and out of a ddev web container and completely
-bypasses osxfs or nfs.
+Uses mutagen to sync files into and out of a ddev web container and completely bypasses osxfs or nfs.
+
+## Requirements
+
+This script requires ddev **v1.14.0** or newer. This method **will not work** with any ddev version older than that.
 
 ## Usage
 
