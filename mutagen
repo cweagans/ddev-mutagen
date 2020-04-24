@@ -1,0 +1,54 @@
+#!/bin/bash
+
+function require_program {
+    if ! type "$1" > /dev/null 2>&1; then
+        echo "$1 is required. Please install it and try again."
+        exit 1
+    fi
+}
+
+require_program "mutagen"
+require_program "jq"
+
+if [ "$1" == "start" ]; then
+    # Don't recreate mutagen sync if it already exists.
+    if [ -f ".ddev/.mutagen-sync-name" ]; then
+        echo "Mutagen sync appears to already be running"
+        exit 0
+    fi
+
+    # Clear out the test files that are bundled with the web container.
+    ddev exec --dir /var/www/html rm -r /var/www/html/*
+
+    # Make sure the mutagen daemon is running.
+    # If the daemon is already running, this will fail, but that's okay.
+    mutagen daemon start 2>/dev/null
+
+    # Create the sync process from the ddev project name
+    ddev describe -j | jq -r .raw.name > .ddev/.mutagen-sync-name
+    if ! mutagen sync list $(cat .ddev/.mutagen-sync-name) 2>/dev/null; then
+        mutagen sync create . docker://ddev-$(cat .ddev/.mutagen-sync-name)-web/var/www/html --sync-mode=two-way-resolved --symlink-mode=posix-raw --name=$(cat .ddev/.mutagen-sync-name)
+    fi
+
+    # Wait for the initial sync process to complete, watch for errors, and return
+    # when ready.
+    echo "Waiting for initial sync to complete"
+    while true; do
+        if mutagen sync list $(cat .ddev/.mutagen-sync-name) | grep "Last error"; then
+            echo "Mutagen sync has errored -- check 'mutagen sync list $(cat .ddev/.mutagen-sync-name)' for the problem"
+            break
+        fi
+        if mutagen sync list $(cat .ddev/.mutagen-sync-name) | grep "Status: Watching for changes"; then
+            echo "Initial mutagen sync has completed. Happy coding!"
+            break
+        fi
+
+        sleep 3
+    done
+fi
+
+if [ "$1" == "stop" ]; then
+    echo "Ending mutagen sync process"
+    mutagen sync terminate $(cat .ddev/.mutagen-sync-name)
+    rm .ddev/.mutagen-sync-name
+fi
