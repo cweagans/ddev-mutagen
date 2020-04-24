@@ -1,5 +1,9 @@
 #!/bin/bash
 
+#
+# Automatically configures mutagen sync for the current .ddev project.
+#
+
 echo "=> Checking ddev project"
 if [ ! -d ".ddev" ]; then
   echo "[!] This does not appear to be a ddev project."
