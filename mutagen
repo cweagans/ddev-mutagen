@@ -18,7 +18,8 @@ if [ "$1" == "start" ]; then
     fi
 
     # Clear out the test files that are bundled with the web container.
-    ddev exec --dir /var/www/html rm -r /var/www/html/*
+    ddev exec --dir /var/www rm phpstatus.php
+    ddev exec --dir /var/www rm -r html/docroot/test
 
     # Make sure the mutagen daemon is running.
     # If the daemon is already running, this will fail, but that's okay.
