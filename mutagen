@@ -1,7 +1,11 @@
 #!/bin/bash
 ## Description: Runs mutagen on the current project
 ## Usage: mutagen
-## Example: "ddev mutagen"
+## Example: "ddev mutagen start" or "ddev mutagen stop"
+
+set -eu -o pipefail
+
+project_name=$(ddev describe -j | jq -r .raw.name)
 
 function require_program {
     if ! type "$1" > /dev/null 2>&1; then
@@ -13,36 +17,30 @@ function require_program {
 require_program "mutagen"
 require_program "jq"
 
+# Make sure the mutagen daemon is running.
+mutagen daemon start
+
 if [ "$1" == "start" ]; then
-    # Don't recreate mutagen sync if it already exists.
-    if [ -f ".ddev/.mutagen-sync-name" ]; then
-        echo "Mutagen sync appears to already be running"
+    if mutagen sync list ${project_name} 2>/dev/null; then
+        echo "Mutagen sync for ${project_name} is already running"
         exit 0
     fi
 
     # Clear out the test files that are bundled with the web container.
-    ddev exec --dir /var/www rm phpstatus.php
-    ddev exec --dir /var/www rm -r html/docroot/test
+    ddev exec --dir /var/www rm -r phpstatus.php html/test
 
-    # Make sure the mutagen daemon is running.
-    # If the daemon is already running, this will fail, but that's okay.
-    mutagen daemon start 2>/dev/null
-
-    # Create the sync process from the ddev project name
-    ddev describe -j | jq -r .raw.name > .ddev/.mutagen-sync-name
-    if ! mutagen sync list $(cat .ddev/.mutagen-sync-name) 2>/dev/null; then
-        mutagen sync create . docker://ddev-$(cat .ddev/.mutagen-sync-name)-web/var/www/html --sync-mode=two-way-resolved --symlink-mode=posix-raw --name=$(cat .ddev/.mutagen-sync-name)
-    fi
+    # Create the sync process from the ddev project
+    mutagen sync create . docker://ddev-${project_name}-web/var/www/html --sync-mode=two-way-resolved --symlink-mode=posix-raw --name=${project_name}
 
     # Wait for the initial sync process to complete, watch for errors, and return
     # when ready.
     echo "Waiting for initial sync to complete"
     while true; do
-        if mutagen sync list $(cat .ddev/.mutagen-sync-name) | grep "Last error"; then
-            echo "Mutagen sync has errored -- check 'mutagen sync list $(cat .ddev/.mutagen-sync-name)' for the problem"
+        if mutagen sync list ${project_name} | grep "Last error"; then
+            echo "Mutagen sync has errored -- check 'mutagen sync list $(cat ${mutagen_sync_file})' for the problem"
             break
         fi
-        if mutagen sync list $(cat .ddev/.mutagen-sync-name) | grep "Status: Watching for changes"; then
+        if mutagen sync list ${project_name} | grep "Status: Watching for changes" >/dev/null; then
             echo "Initial mutagen sync has completed. Happy coding!"
             break
         fi
@@ -53,6 +51,6 @@ fi
 
 if [ "$1" == "stop" ]; then
     echo "Ending mutagen sync process"
-    mutagen sync terminate $(cat .ddev/.mutagen-sync-name)
-    rm .ddev/.mutagen-sync-name
+    mutagen sync flush ${project_name}
+    mutagen sync terminate ${project_name}
 fi
