@@ -29,6 +29,7 @@ chmod +x .ddev/commands/host/mutagen
 # These are the hooks we need to add
 hooks=$(cat <<EOF
 no_project_mount: true
+fail_on_hook_fail: true
 hooks:
   pre-start:
     # Make sure we don't already have a session running; it can confuse syncing
