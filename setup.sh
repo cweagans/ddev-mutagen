@@ -3,6 +3,7 @@
 #
 # Configures mutagen sync for the current ddev project.
 #
+set -eu -o pipefail
 
 echo "=> Checking ddev project"
 if [ ! -d ".ddev" ]; then
