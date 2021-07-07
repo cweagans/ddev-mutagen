@@ -6,7 +6,8 @@
 
 set -eu -o pipefail
 
-project_name=${DDEV_PROJECT}
+# Mutagen sync names can't have '.' but ddev projects can...
+project_name=${DDEV_PROJECT//.}
 
 if ! command -v mutagen >/dev/null 2>&1; then
         echo "mutagen is required. Please install it and try again."

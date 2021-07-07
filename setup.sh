@@ -32,7 +32,7 @@ no_project_mount: true
 hooks:
   pre-start:
     # Make sure we don't already have a session running; it can confuse syncing
-    - exec-host: "mutagen sync terminate \${DDEV_PROJECT}"
+    - exec-host: "mutagen sync terminate \${DDEV_PROJECT//.} 2>/dev/null || true"
   post-start:
     # Start the mutagen sync process for this project.
     - exec-host: "ddev mutagen start"
