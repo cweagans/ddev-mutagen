@@ -26,7 +26,7 @@ if [ "$1" == "start" ]; then
         exit 0
     fi
 
-    # Clear out the test files that are bundled with the web container.
+    # Clear out test files that are bundled with the web container.
     # We don't want those synced back into the project
     ddev exec rm -rf /var/www/html/{test,index.html}
 
