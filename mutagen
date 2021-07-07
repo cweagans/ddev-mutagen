@@ -7,7 +7,8 @@
 set -eu -o pipefail
 
 # Mutagen sync names can't have '.' but ddev projects can...
-project_name=${DDEV_PROJECT//.}
+project_name=${DDEV_PROJECT}
+sync_name=${project_name//.}
 
 if ! command -v mutagen >/dev/null 2>&1; then
         echo "mutagen is required. Please install it and try again."
@@ -20,24 +21,24 @@ mutagen daemon start
 if [ "$1" == "start" ]; then
     # If there's an existing sync, terrible things can happen, see
     # https://github.com/mutagen-io/mutagen/issues/275 and make sure that doesn't happen
-    mutagen sync terminate ${project_name} 2>/dev/null || true
+    mutagen sync terminate ${sync_name} 2>/dev/null || true
 
     # Clear out test files that are bundled with the web container.
     # We don't want those synced back into the project
     ddev exec rm -rf /var/www/html/{test,index.html}
 
     # Create the sync process from the ddev project
-    mutagen sync create ${DDEV_DOCROOT} docker://ddev-${project_name}-web/var/www/html --sync-mode=two-way-resolved --symlink-mode=posix-raw --name=${project_name}
+    mutagen sync create ${DDEV_DOCROOT} docker://ddev-${project_name}-web/var/www/html --sync-mode=two-way-resolved --symlink-mode=posix-raw --name=${sync_name}
 
     # Wait for the initial sync process to complete, watch for errors, and return
     # when ready.
     echo "Waiting for initial sync to complete"
     while true; do
-        if mutagen sync list ${project_name} | grep "Last error"; then
+        if mutagen sync list ${sync_name} | grep "Last error"; then
             echo "Mutagen sync has errored -- check 'mutagen sync list $(cat ${mutagen_sync_file})' for the problem"
             break
         fi
-        if mutagen sync list ${project_name} | grep "Status: Watching for changes" >/dev/null; then
+        if mutagen sync list ${sync_name} | grep "Status: Watching for changes" >/dev/null; then
             echo "Initial mutagen sync has completed. Happy coding!"
             break
         fi
@@ -48,6 +49,6 @@ fi
 
 if [ "$1" == "stop" ]; then
     echo "Ending mutagen sync process"
-    mutagen sync flush ${project_name}
-    mutagen sync terminate ${project_name}
+    mutagen sync flush ${sync_name}
+    mutagen sync terminate ${sync_name}
 fi
