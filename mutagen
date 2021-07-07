@@ -28,7 +28,7 @@ if [ "$1" == "start" ]; then
     ddev exec rm -rf /var/www/html/{test,index.html}
 
     # Create the sync process from the ddev project
-    mutagen sync create ${DDEV_DOCROOT} docker://ddev-${project_name}-web/var/www/html --sync-mode=two-way-resolved --symlink-mode=posix-raw --name=${sync_name}
+    mutagen sync create ${DDEV_APPROOT} docker://ddev-${project_name}-web/var/www/html --sync-mode=two-way-resolved --symlink-mode=posix-raw --name=${sync_name}
 
     # Wait for the initial sync process to complete, watch for errors, and return
     # when ready.
