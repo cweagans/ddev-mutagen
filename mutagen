@@ -47,8 +47,8 @@ if [ "$1" == "start" ]; then
     done
 fi
 
-if [ "$1" == "stop" ]; then
-    echo "Ending mutagen sync process"
+if [ "$1" == "stop" -o "$1" == "pause" ]; then
+    echo "Stopping mutagen sync process"
     mutagen sync flush ${sync_name}
     mutagen sync terminate ${sync_name}
 fi
