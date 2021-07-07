@@ -27,7 +27,8 @@ if [ "$1" == "start" ]; then
     fi
 
     # Clear out the test files that are bundled with the web container.
-    ddev exec --dir /var/www rm -r phpstatus.php html/test
+    # We don't want those synced back into the project
+    ddev exec rm -rf /var/www/html/{test,index.html}
 
     # Create the sync process from the ddev project
     mutagen sync create . docker://ddev-${project_name}-web/var/www/html --sync-mode=two-way-resolved --symlink-mode=posix-raw --name=${project_name}
