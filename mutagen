@@ -15,9 +15,6 @@ if ! command -v mutagen >/dev/null 2>&1; then
         exit 1
 fi
 
-# Make sure the mutagen daemon is running.
-mutagen daemon start
-
 if [ "$1" == "start" ]; then
     # If there's an existing sync, terrible things can happen, see
     # https://github.com/mutagen-io/mutagen/issues/275 and make sure that doesn't happen
