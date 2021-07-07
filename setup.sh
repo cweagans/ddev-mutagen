@@ -11,18 +11,12 @@ if [ ! -d ".ddev" ]; then
   exit 1
 fi
 
-echo "=> Checking to make sure mutagen and jq are installed"
+echo "=> Checking to make sure mutagen is installed"
 if ! type "mutagen" > /dev/null 2>&1; then
   echo "  => mutagen is not installed. running 'brew install mutagen-io/mutagen/mutagen'"
   echo "     If you do not want to do this, press Ctrl+C in the next 5 seconds"
   sleep 5
   brew install mutagen-io/mutagen/mutagen
-fi
-if ! type "jq" > /dev/null 2>&1; then
-  echo "  => jq is not installed. running 'brew install jq'"
-  echo "     If you do not want to do this, press Ctrl+C in the next 5 seconds"
-  sleep 5
-  brew install jq
 fi
 
 echo "=> Setting up mutagen sync script in the current ddev project"
@@ -44,7 +38,7 @@ no_project_mount: true
 hooks:
   pre-start:
     # Make sure we don't already have a session running; it can confuse syncing
-    - exec-host: "ddev mutagen stop"
+    - exec-host: "mutagen sync terminate ${DDEV_PROJECT}"
   post-start:
     # Start the mutagen sync process for this project.
     - exec-host: "ddev mutagen start"

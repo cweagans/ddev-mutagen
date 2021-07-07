@@ -1,30 +1,25 @@
 #!/bin/bash
+
 ## Description: Runs mutagen on the current project
-## Usage: mutagen
+## Usage: mutagen [start|stop]
 ## Example: "ddev mutagen start" or "ddev mutagen stop"
 
 set -eu -o pipefail
 
-project_name=$(ddev describe -j | jq -r .raw.name)
+project_name=${DDEV_PROJECT}
 
-function require_program {
-    if ! type "$1" > /dev/null 2>&1; then
-        echo "$1 is required. Please install it and try again."
+if ! command -v mutagen >/dev/null 2>&1; then
+        echo "mutagen is required. Please install it and try again."
         exit 1
-    fi
-}
-
-require_program "mutagen"
-require_program "jq"
+fi
 
 # Make sure the mutagen daemon is running.
 mutagen daemon start
 
 if [ "$1" == "start" ]; then
-    if mutagen sync list ${project_name} 2>/dev/null; then
-        echo "Mutagen sync for ${project_name} is already running"
-        exit 0
-    fi
+    # If there's an existing sync, terrible things can happen, see
+    # https://github.com/mutagen-io/mutagen/issues/275 and make sure that doesn't happen
+    mutagen sync terminate ${project_name} 2>/dev/null || true
 
     # Clear out test files that are bundled with the web container.
     # We don't want those synced back into the project
