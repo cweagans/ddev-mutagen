@@ -1,3 +1,5 @@
+Note: probably don't use this anymore. Instead, use the mutagen functionality that's built into ddev itself.
+
 # ddev-mutagen
 
 Uses mutagen to sync files into and out of a ddev web container and completely bypasses osxfs or nfs.
